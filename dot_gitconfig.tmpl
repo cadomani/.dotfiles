@@ -1,6 +1,11 @@
 [user]
 	email = {{ .email }} 
 	name = Carlos Domani
+[alias]
+  undo = reset --soft HEAD^
+  stash-all = stash save --include-untracked
+  branches = branch -a
+  remotes = remote -v
 [core]
 	editor = nvim
 	autocrlf = input
@@ -12,3 +17,6 @@
 	prune = true
 [push]
 	default = simple
+  followTags = true
+[merge]
+  conflictstyle = diff3
