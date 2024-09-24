@@ -40,5 +40,16 @@ zshrc() {
   $EDITOR ~/.zshrc
 }
 
-# Path extensions 
-export PATH="$PATH:/home/nb/.local/bin"
+# Shell extensions
+eval "$(zoxide init zsh)"
+
+# Completions
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+[ -s "/home/nb/.bun/_bun" ] && source "/home/nb/.bun/_bun"
+
+# Path extensions and exports
+export BUN_INSTALL="$HOME/.bun"
+export PATH="/home/nb/.local/bin:/home/nb/go/bin:$BUN_INSTALL/bin:$PATH"
