@@ -4,9 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a personal dotfiles repository for an Arch Linux system using Hyprland (Wayland compositor) with extensive development tooling. All configurations follow the XDG Base Directory specification and are stored under `.config/`.
+This is a personal dotfiles repository for an Arch Linux system using Hyprland (Wayland compositor) with extensive development tooling. The repository is organized using GNU Stow for symlink management, with each application having its own package directory. All configurations follow the XDG Base Directory specification and are stored under `.config/`.
 
 ## Key Architecture & Structure
+
+### Stow Package Structure
+The repository uses GNU Stow for dotfiles management with the following package structure:
+- `alacritty/` - Terminal emulator configuration
+- `claude/` - Claude Code configuration
+- `hypr/` - Hyprland window manager and related configs
+- `nvim/` - Neovim editor configuration
+- `starship/` - Cross-shell prompt configuration
+- `swayosd/` - On-screen display daemon for Wayland
+- `waybar/` - Status bar configuration
+- `zellij/` - Terminal multiplexer configuration
+- `zsh/` - Zsh shell configuration
+
+Each package contains a `.config/` directory that mirrors the target structure in `$HOME/.config/`.
 
 ### Theme System Integration
 The dotfiles heavily integrate with "Omarchy" - a desktop theme/configuration framework. When modifying configurations, check for Omarchy-specific paths and variables in:
@@ -32,11 +46,23 @@ Multiple shells are configured with shared components:
 
 ## Common Development Tasks
 
-### Managing Dotfiles
+### Managing Dotfiles with Stow
 ```bash
+# Install/update a specific package (creates symlinks)
+stow <package-name>
+
+# Remove a package (removes symlinks)
+stow -D <package-name>
+
+# Reinstall a package (useful after config changes)
+stow -R <package-name>
+
+# Install all packages
+stow */
+
 # Stage and commit configuration changes
-git add .config/<tool>/
-git commit -m "Update <tool> configuration"
+git add <package-name>/
+git commit -m "Update <package-name> configuration"
 
 # Check for untracked configuration files
 git status
@@ -59,11 +85,13 @@ alacritty --print-events
 
 ## Important Considerations
 
-### Symlink vs Direct Edit
-This repository appears to be the actual dotfiles location (not symlinked). When making changes:
-1. Edit files directly in this repository
-2. Changes take effect immediately for most applications
-3. Some applications may require restart (Hyprland can be reloaded with `hyprctl reload`)
+### Stow Symlink Management
+This repository uses GNU Stow to create symlinks from package directories to `$HOME/.config/`. When making changes:
+1. Edit files directly in the package directories (e.g., `hypr/.config/hypr/hyprland.conf`)
+2. Changes take effect immediately since files are symlinked to their target locations
+3. Use `stow -R <package>` if you need to refresh symlinks after structural changes
+4. Some applications may require restart (Hyprland can be reloaded with `hyprctl reload`)
+5. The `.stow-local-ignore` file prevents documentation and git files from being symlinked
 
 ### NVIDIA-Specific Settings
 The system uses NVIDIA GPU with specific environment variables in `.config/hypr/environments.conf`. These settings are critical for Wayland compatibility.
