@@ -21,9 +21,9 @@ return {
       ---@diagnostic disable-next-line: inject-field
       clangd_capabilities.offsetEncoding = { 'utf-16' }
 
-      -- Configure and start clangd directly with lspconfig
+      -- Configure and start clangd directly with vim.lsp.config
       -- This ensures it gets registered properly
-      require('lspconfig').clangd.setup {
+      vim.lsp.config('clangd', {
         cmd = {
           'clangd',
           '--background-index',
@@ -53,7 +53,8 @@ return {
             vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
           end
         end,
-      }
+      })
+      vim.lsp.enable 'clangd'
 
       -- Now setup clangd_extensions once we know clangd is properly registered
       require('clangd_extensions').setup {

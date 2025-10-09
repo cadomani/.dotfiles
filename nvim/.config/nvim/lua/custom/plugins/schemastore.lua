@@ -5,13 +5,15 @@ return {
   version = false, -- last release is way too old
   config = function()
     -- Enable JSON schema validation for various files
-    require('lspconfig').jsonls.setup {
+    vim.lsp.config('jsonls', {
       settings = {
         json = {
           schemas = require('schemastore').json.schemas(),
           validate = { enable = true },
         },
       },
-    }
+    })
+    vim.lsp.enable 'jsonls'
   end,
 }
+
