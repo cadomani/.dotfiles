@@ -1,15 +1,22 @@
+---@type LazySpec
 return {
   {
     'mrcjkb/rustaceanvim',
-    version = '^5',
+    version = '^6',
     lazy = false,
     config = function()
       vim.g.rustaceanvim = {
         -- Plugin configuration
-        tools = {},
+        ---@type rustaceanvim.tools.Opts
+        tools = {
+          float_win_config = {
+            border = 'rounded',
+          },
+          test_executor = 'background',
+        },
         -- LSP configuration
         server = {
-          on_attach = function(client, bufnr)
+          on_attach = function(_, bufnr)
             -- Use rust-analyzer's grouping
             vim.keymap.set('n', '<leader>ca', function()
               vim.cmd.RustLsp 'codeAction'
@@ -23,10 +30,41 @@ return {
             end, { silent = true, buffer = bufnr })
           end,
           default_settings = {
-            -- LSP configuration
+            -- rust-analyzer language server configuration
             ['rust-analyzer'] = {
+              cargo = {
+                allFeatures = true,
+                loadOutDirsFromCheck = true,
+                buildScripts = {
+                  enable = true,
+                },
+              },
               diagnostics = {
-                disabled = { 'inactive-code' },
+                enable = true,
+                experimental = {
+                  enable = true,
+                },
+              },
+              procMacro = {
+                enable = true,
+                ignored = {
+                  ['async-trait'] = { 'async_trait' },
+                  ['napi-derive'] = { 'napi' },
+                  ['async-recursion'] = { 'async_recursion' },
+                },
+              },
+              files = {
+                excludeDirs = {
+                  '.direnv',
+                  '.git',
+                  '.github',
+                  '.gitlab',
+                  'bin',
+                  'node_modules',
+                  'target',
+                  'venv',
+                  '.venv',
+                },
               },
             },
           },
@@ -34,6 +72,16 @@ return {
         -- DAP configuration
         dap = {},
       }
+    end,
+  },
+  {
+    'nvim-neotest/neotest',
+    optional = true,
+    opts = function(_, opts)
+      opts.adapters = opts.adapters or {}
+      vim.list_extend(opts.adapters, {
+        require 'rustaceanvim.neotest',
+      })
     end,
   },
 }
