@@ -12,7 +12,8 @@ return {
           float_win_config = {
             border = 'rounded',
           },
-          test_executor = 'background',
+          crate_test_executor = 'neotest',
+          test_executor = 'neotest',
         },
         -- LSP configuration
         server = {

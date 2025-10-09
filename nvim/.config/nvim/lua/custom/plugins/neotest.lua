@@ -6,4 +6,10 @@ return {
     'antoinemadec/FixCursorHold.nvim',
     'nvim-treesitter/nvim-treesitter',
   },
+  ---@type neotest.Config
+  opts = {
+    floating = {
+      border = 'rounded',
+    },
+  },
 }
