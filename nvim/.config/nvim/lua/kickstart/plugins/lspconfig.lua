@@ -93,7 +93,7 @@ return {
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -224,17 +224,6 @@ return {
         },
       }
 
-      -- Customize diagnostic signs for a cleaner look
-      for type, icon in pairs {
-        Error = 'E',
-        Warn = 'W',
-        Hint = 'H',
-        Info = 'I',
-      } do
-        local hl = 'DiagnosticSign' .. type
-        vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-      end
-
       -- Configure diagnostics display
       vim.diagnostic.config {
         virtual_text = {
@@ -246,7 +235,14 @@ return {
           source = 'always',
           border = 'rounded',
         },
-        signs = true,
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = 'E',
+            [vim.diagnostic.severity.WARN] = 'W',
+            [vim.diagnostic.severity.HINT] = 'H',
+            [vim.diagnostic.severity.INFO] = 'I',
+          },
+        },
         underline = true,
         update_in_insert = false,
         severity_sort = true,
