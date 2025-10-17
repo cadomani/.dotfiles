@@ -18,3 +18,9 @@
 - If shadcn is in use anywhere in the codebase, prefer using or reusing any of those components before attempting to remake the component from scratch. If any of those components need to be modified or extended from existing components, you may use composition to create a new component and add it to the same directory as the other shadcn components.
 - When creating a large feature that will have lots of related code in different files, particularly if the code or components will only be in use for that feature, create a new directory to group things together.
 - If importing icons from lucide-react, prefer the variant that has "Icon" as its suffix.
+
+# Rust
+- As soon as a list of todos is completed, do the following:
+  - Offer to format the code using `cargo fmt --all`.
+  - Offer to add docstrings to public methods and fields in structs and enums.
+- We have pedantic clippy rules allowed in our CI infrastructure. Make sure when you run clippy, you are ensuring that it fails on any warnings just like it does on our CI infrastructure.
