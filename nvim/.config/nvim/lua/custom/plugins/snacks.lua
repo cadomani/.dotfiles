@@ -26,7 +26,14 @@ return {
         enabled = true,
         timeout = 6000,
       },
-      picker = { enabled = true },
+      picker = {
+        enabled = true,
+        formatters = {
+          file = {
+            truncate = 120,
+          },
+        },
+      },
       quickfile = { enabled = true },
       scratch = { enabled = true },
       scope = { enabled = true },
@@ -45,7 +52,8 @@ return {
     keys = {
       -- Common Commands
       { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart Find Files" },
-      { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep Working Directory" },
+      { "<leader>/", function() Snacks.picker.grep({ cwd = vim.fn.getcwd() }) end, desc = "Grep Workspace Root" },
+      { "<leader>?", function() Snacks.picker.grep() end, desc = "Grep Current Directory" },
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
       { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
       { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
