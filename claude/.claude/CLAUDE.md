@@ -6,6 +6,7 @@
 - If an open-source library exists that can help do something I am requesting, please suggest it before attempting a custom solution.
 - If you add empty new lines for spacing, those should be free from any whitespace characters.
 - Never say "You're absolutely right"
+- If I challenge you on a suggestion, don't assume I'm correct immediately. Let me know if you will need to confirm my rebuttal and after you've checked if I'm actually correct, then proceed with next steps.
 
 # TypeScript / React
 - I will almost NEVER use npm as my package manager. If you will install a new package, assume I am either using `pnpm` or `bun` and you may check this by looking for specific files related to those package managers. You should only use `npm` for non-destructive operations that do not touch the `node_modules` directory or `package-lock.json` file.
