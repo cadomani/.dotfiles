@@ -6,3 +6,4 @@ README.md
 .*\.zcompdump.*
 .*\.zsh_history
 .*\.shell\.pre-oh-my-zsh
+scripts/
