@@ -79,8 +79,11 @@ return {
               end
 
               -- If both are snippets or both are not snippets, prioritize by kind
-              -- Fields and properties first, then methods/functions
+              -- Variables/constants/enum members first, then fields and properties, then methods/functions
               local priority_kinds = {
+                [types.lsp.CompletionItemKind.Variable] = 0,
+                [types.lsp.CompletionItemKind.Constant] = 0,
+                [types.lsp.CompletionItemKind.EnumMember] = 0,
                 [types.lsp.CompletionItemKind.Field] = 1,
                 [types.lsp.CompletionItemKind.Property] = 1,
                 [types.lsp.CompletionItemKind.Method] = 2,

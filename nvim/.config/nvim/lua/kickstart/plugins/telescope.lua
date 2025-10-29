@@ -64,7 +64,12 @@ return {
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
-            require('telescope.themes').get_dropdown(),
+            require('telescope.themes').get_dropdown {
+              sorting_strategy = 'ascending',
+              layout_config = {
+                prompt_position = 'top',
+              },
+            },
           },
         },
       }
