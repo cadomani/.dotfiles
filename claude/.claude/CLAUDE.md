@@ -25,3 +25,14 @@
   - Offer to format the code using `cargo fmt --all`.
   - Offer to add docstrings to public methods and fields in structs and enums.
 - We have pedantic clippy rules allowed in our CI infrastructure. Make sure when you run clippy, you are ensuring that it fails on any warnings just like it does on our CI infrastructure.
+
+# Code Reading Instructions
+When reading Rust files, ignore (don't read) any code within `#[cfg(test)]` modules unless I explicitly ask about tests. These sections are marked as:
+```rust
+#[cfg(test)]
+mod tests {
+    // ... test code ...
+}
+```
+
+Focus only on the production code outside these test modules. This is done to save tokens on extremely large files. If you must, first grep to find where this section is and simply read the lines before that. The tests will always be at the end of the code and you can safely assume they will not be interspersed through the file.
