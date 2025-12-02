@@ -1,0 +1,62 @@
+return {
+  -- {
+  --   -- Add tailwindcss LSP support
+  --   'neovim/nvim-lspconfig',
+  --   optional = true,
+  --   opts = {
+  --     servers = {
+  --       tailwindcss = {},
+  --     },
+  --   },
+  -- },
+  -- {
+  --   -- Ensure tailwindcss LSP is installed via Mason
+  --   'williamboman/mason-lspconfig.nvim',
+  --   optional = true,
+  --   opts = function(_, opts)
+  --     opts.ensure_installed = opts.ensure_installed or {}
+  --     vim.list_extend(opts.ensure_installed, { 'tailwindcss' })
+  --   end,
+  -- },
+  -- {
+  --   -- Add tailwindcss colors to autocompletion
+  --   'roobert/tailwindcss-colorizer-cmp.nvim',
+  --   -- Load when cmp is loaded
+  --   event = 'VeryLazy',
+  --   config = function()
+  --     require('tailwindcss-colorizer-cmp').setup {
+  --       color_square_width = 2,
+  --     }
+  --   end,
+  -- },
+  -- {
+  --   -- Update nvim-cmp to use tailwind colorizer
+  --   'hrsh7th/nvim-cmp',
+  --   optional = true,
+  --   config = function()
+  --     local cmp = require 'cmp'
+  --     -- Get the current cmp config
+  --     local cmp_config = cmp.get_config()
+  --
+  --     -- Initialize formatting if it doesn't exist
+  --     cmp_config.formatting = cmp_config.formatting or {}
+  --
+  --     -- Store the original formatter (if it exists)
+  --     local original_formatter = cmp_config.formatting.format
+  --
+  --     -- Set up the new formatter that includes tailwind colors
+  --     cmp_config.formatting.format = function(entry, item)
+  --       -- Call the original formatter if it exists
+  --       if original_formatter then
+  --         original_formatter(entry, item)
+  --       end
+  --
+  --       -- Apply the tailwind formatter
+  --       return require('tailwindcss-colorizer-cmp').formatter(entry, item)
+  --     end
+  --
+  --     -- Update cmp with the new configuration
+  --     cmp.setup(cmp_config)
+  --   end,
+  -- },
+}
