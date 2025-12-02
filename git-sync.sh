@@ -7,7 +7,7 @@
 
 set -e
 
-NVIM_PREFIX="nvim/.config/nvim"
+NVIM_PREFIX="nvim/dot-config/nvim"
 NVIM_REMOTE="git@github.com:cadomani/nvim.git"
 NVIM_BRANCH="master"
 UPSTREAM_REMOTE="https://github.com/dam9000/kickstart-modular.nvim.git"
