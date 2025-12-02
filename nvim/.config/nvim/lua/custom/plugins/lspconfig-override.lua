@@ -1,6 +1,6 @@
 -- Custom LSP keymaps and hover behavior
 -- Navigation (gd, gr, gI, gt) is handled by snacks.nvim
--- This adds additional keymaps on LspAttach
+-- This adds keymaps from kickstart that don't overlap with snacks
 return {
   {
     'neovim/nvim-lspconfig',
@@ -14,7 +14,11 @@ return {
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
-          -- Custom keymaps (in addition to snacks.nvim navigation)
+          -- Kickstart keymaps not covered by snacks.nvim
+          map('gO', function() Snacks.picker.lsp_symbols() end, 'Document Symbols')
+          map('gW', function() Snacks.picker.lsp_workspace_symbols() end, 'Workspace Symbols')
+
+          -- Custom keymaps
           map('<leader>cr', vim.lsp.buf.rename, 'Rename')
           map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
           map('<leader>cd', vim.diagnostic.open_float, 'Line Diagnostics')
