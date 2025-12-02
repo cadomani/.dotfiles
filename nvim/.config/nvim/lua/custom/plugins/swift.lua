@@ -9,11 +9,33 @@ return {
     'neovim/nvim-lspconfig',
     dependencies = { 'saghen/blink.cmp' },
     config = function()
-      local lspconfig = require 'lspconfig'
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
-      -- Configure sourcekit-lsp for Swift
-      lspconfig.sourcekit.setup {
+      -- Helper function to find root directory
+      local function find_root(filename)
+        -- First check for Xcode project/workspace files
+        local xcode_patterns = { '*.xcodeproj', '*.xcworkspace' }
+        for _, pattern in ipairs(xcode_patterns) do
+          local dir = vim.fs.dirname(filename)
+          while dir do
+            local matches = vim.fn.glob(dir .. '/' .. pattern, false, true)
+            if #matches > 0 then
+              return dir
+            end
+            local parent = vim.fs.dirname(dir)
+            if parent == dir then
+              break
+            end
+            dir = parent
+          end
+        end
+        -- Fall back to Swift Package Manager or git
+        local root = vim.fs.root(filename, { 'Package.swift', '.git' })
+        return root or vim.fs.dirname(filename)
+      end
+
+      -- Configure sourcekit-lsp for Swift using new vim.lsp.config API
+      vim.lsp.config('sourcekit', {
         capabilities = vim.tbl_deep_extend('force', capabilities, {
           workspace = {
             didChangeWatchedFiles = {
@@ -23,36 +45,28 @@ return {
         }),
         cmd = { 'xcrun', 'sourcekit-lsp' },
         filetypes = { 'swift' },
-        root_dir = function(filename)
-          -- First check for Xcode project/workspace files
-          local xcode_project = lspconfig.util.root_pattern('*.xcodeproj', '*.xcworkspace')(filename)
-          if xcode_project then
-            return xcode_project
-          end
-          -- Fall back to Swift Package Manager or git
-          return lspconfig.util.root_pattern('Package.swift', '.git')(filename) or lspconfig.util.path.dirname(filename)
-        end,
+        root_dir = find_root,
         settings = {},
-        -- Additional initialization for Xcode projects
-        on_new_config = function(config, root_dir)
-          -- Check if this is an Xcode project
+      })
+      vim.lsp.enable('sourcekit')
+
+      -- Check for xcode-build-server on first Swift file open
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'swift',
+        once = true,
+        callback = function()
+          local root_dir = vim.fn.getcwd()
           local xcode_project = vim.fn.glob(root_dir .. '/*.xcodeproj')
           local xcode_workspace = vim.fn.glob(root_dir .. '/*.xcworkspace')
 
-          if xcode_project ~= '' or xcode_workspace ~= '' then
-            -- Try to use xcode-build-server if available
-            if vim.fn.executable 'xcode-build-server' == 1 then
-              -- xcode-build-server will generate build information for sourcekit-lsp
-              -- vim.notify('Xcode project detected. Using xcode-build-server for better module resolution.', vim.log.levels.INFO)
-            else
-              vim.notify(
-                'Xcode project detected. Install xcode-build-server for better module resolution: brew install xcode-build-server',
-                vim.log.levels.WARN
-              )
-            end
+          if (xcode_project ~= '' or xcode_workspace ~= '') and vim.fn.executable 'xcode-build-server' ~= 1 then
+            vim.notify(
+              'Xcode project detected. Install xcode-build-server for better module resolution: brew install xcode-build-server',
+              vim.log.levels.WARN
+            )
           end
         end,
-      }
+      })
     end,
   },
 
