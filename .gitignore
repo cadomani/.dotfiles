@@ -9,3 +9,8 @@
 # Other shell cache/temporary files
 */.shell.pre-oh-my-zsh
 .shell.pre-oh-my-zsh
+
+.DS_Store
+
+# Temporary nvim directory (migration artifact)
+nvim-old/
