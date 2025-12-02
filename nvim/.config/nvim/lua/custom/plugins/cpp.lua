@@ -6,13 +6,12 @@ return {
     ft = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto' },
     dependencies = {
       'neovim/nvim-lspconfig',
-      'hrsh7th/cmp-nvim-lsp',
+      'saghen/blink.cmp',
       -- Add nvim-lint as dependency to ensure it's installed
       'mfussenegger/nvim-lint',
     },
     config = function()
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+      local capabilities = require('blink.cmp').get_lsp_capabilities()
 
       -- Make sure clangd uses the same capabilities as other LSP servers
       local clangd_capabilities = vim.deepcopy(capabilities)
