@@ -1,25 +1,19 @@
--- Conform.nvim override for prettier formatting
+-- Conform.nvim override for additional formatters
 return {
   {
     'stevearc/conform.nvim',
-    opts = function(_, opts)
-      opts.formatters_by_ft = opts.formatters_by_ft or {}
-      -- JavaScript/TypeScript/React - use prettier (prefers project's node_modules version)
-      opts.formatters_by_ft.javascript = { 'prettier' }
-      opts.formatters_by_ft.javascriptreact = { 'prettier' }
-      opts.formatters_by_ft.typescript = { 'prettier' }
-      opts.formatters_by_ft.typescriptreact = { 'prettier' }
-      opts.formatters_by_ft.vue = { 'prettier' }
-      opts.formatters_by_ft.css = { 'prettier' }
-      opts.formatters_by_ft.scss = { 'prettier' }
-      opts.formatters_by_ft.less = { 'prettier' }
-      opts.formatters_by_ft.html = { 'prettier' }
-      opts.formatters_by_ft.json = { 'prettier' }
-      opts.formatters_by_ft.jsonc = { 'prettier' }
-      opts.formatters_by_ft.yaml = { 'prettier' }
-      opts.formatters_by_ft.markdown = { 'prettier' }
-      opts.formatters_by_ft.graphql = { 'prettier' }
-      return opts
-    end,
+    opts = {
+      formatters_by_ft = {
+        -- Web languages - use prettier
+        vue = { 'prettierd', 'prettier', stop_after_first = true },
+        css = { 'prettierd', 'prettier', stop_after_first = true },
+        scss = { 'prettierd', 'prettier', stop_after_first = true },
+        less = { 'prettierd', 'prettier', stop_after_first = true },
+        html = { 'prettierd', 'prettier', stop_after_first = true },
+        yaml = { 'prettierd', 'prettier', stop_after_first = true },
+        markdown = { 'prettierd', 'prettier', stop_after_first = true },
+        graphql = { 'prettierd', 'prettier', stop_after_first = true },
+      },
+    },
   },
 }

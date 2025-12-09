@@ -18,17 +18,28 @@ return {
         -- LSP configuration
         server = {
           on_attach = function(_, bufnr)
-            -- Use rust-analyzer's grouping
+            local opts = { silent = true, buffer = bufnr }
+
+            -- Use rust-analyzer's grouping for code actions
             vim.keymap.set('n', '<leader>ca', function()
               vim.cmd.RustLsp 'codeAction'
-              -- uncomment to use vim's default grouping
-              -- vim.lsp.buf.codeAction()
-            end, { silent = true, buffer = bufnr })
+            end, vim.tbl_extend('force', opts, { desc = 'LSP: Code Action (Rust)' }))
+
+            -- Also support visual mode for code actions
+            vim.keymap.set('x', '<leader>ca', function()
+              vim.cmd.RustLsp 'codeAction'
+            end, vim.tbl_extend('force', opts, { desc = 'LSP: Code Action (Rust)' }))
 
             -- Override Neovim's built-in hover keymap with rustaceanvim's hover actions
             vim.keymap.set('n', 'K', function()
               vim.cmd.RustLsp { 'hover', 'actions' }
-            end, { silent = true, buffer = bufnr })
+            end, vim.tbl_extend('force', opts, { desc = 'LSP: Hover Actions (Rust)' }))
+
+            -- Rename (uses standard LSP rename)
+            vim.keymap.set('n', '<leader>cr', vim.lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'LSP: Rename' }))
+
+            -- Line diagnostics
+            vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, vim.tbl_extend('force', opts, { desc = 'LSP: Line Diagnostics' }))
           end,
           default_settings = {
             -- rust-analyzer language server configuration
@@ -49,7 +60,7 @@ return {
               procMacro = {
                 enable = true,
                 ignored = {
-                  ['async-trait'] = { 'async_trait' },
+                  -- ['async-trait'] = { 'async_trait' },
                   ['napi-derive'] = { 'napi' },
                   ['async-recursion'] = { 'async_recursion' },
                 },

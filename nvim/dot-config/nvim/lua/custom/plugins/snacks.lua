@@ -10,6 +10,9 @@ return {
       debug = { enabled = true },
       explorer = {
         enabled = true,
+        exclude = {
+          "**/.DS_Store",
+        },
         -- Add this to prevent actions during swap recovery:
         on_attach = function(bufnr)
           -- Skip attaching actions if we're in a recovery mode

@@ -9,6 +9,10 @@ return {
       library = {
         -- Load luvit types when the `vim.uv` word is found
         { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
+        { path = 'snacks.nvim', words = { 'Snacks' } },
+        { path = 'lazy.nvim', words = { 'LazyVim' } },
+        -- Include installed plugins for type checking
+        { path = vim.fn.stdpath 'data' .. '/lazy', words = { 'opts' } },
       },
     },
   },
@@ -79,6 +83,23 @@ return {
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
           map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
+
+          -- Custom keymaps (leader-based)
+          map('<leader>cr', vim.lsp.buf.rename, 'Rename')
+          map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
+          map('<leader>cd', vim.diagnostic.open_float, 'Line Diagnostics')
+
+          -- Enhanced hover with border and dimensions
+          map('K', function()
+            vim.lsp.buf.hover {
+              border = 'rounded',
+              max_width = 100,
+              max_height = 40,
+              wrap = true,
+              focus = false,
+              close_events = { 'CursorMoved', 'BufHidden', 'InsertCharPre' },
+            }
+          end, 'Code Hover')
 
           -- Find references for the word under your cursor.
           map('grr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
@@ -230,11 +251,22 @@ return {
               completion = {
                 callSnippet = 'Replace',
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
+              workspace = {
+                library = {
+                  vim.fn.stdpath 'data' .. '/lazy/snacks.nvim',
+                },
+              },
+              diagnostics = {
+                -- Ignore Lua_LS's noisy `missing-fields` warnings
+                disable = { 'missing-fields' },
+                globals = { 'vim' },
+              },
             },
           },
         },
+
+        -- Cypher (Neo4j) language server
+        cypher_ls = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -253,11 +285,18 @@ return {
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'clang-format', -- Used to format C/C++ code
+        'cpplint', -- Used to lint C/C++ code
         'vtsls', -- TypeScript/JavaScript LSP
         'eslint-lsp', -- ESLint LSP
         'prettier', -- Code formatter
+        'cypher-language-server', -- Cypher/Neo4j LSP
       })
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+      require('mason-tool-installer').setup {
+        ensure_installed = ensure_installed,
+        run_on_start = true,
+        auto_update = false,
+      }
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
