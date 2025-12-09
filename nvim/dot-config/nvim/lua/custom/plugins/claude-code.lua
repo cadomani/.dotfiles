@@ -48,6 +48,10 @@ return {
     dependencies = { 'folke/snacks.nvim' },
     opts = {
       terminal_cmd = '~/.local/bin/claude',
+
+      -- Send/Focus Behavior
+      -- When true, successful sends will focus the Claude terminal if already connected
+      focus_after_send = true,
     },
     config = true,
     keys = {
