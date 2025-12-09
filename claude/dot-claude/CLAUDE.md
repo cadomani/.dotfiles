@@ -36,3 +36,4 @@ mod tests {
 ```
 
 Focus only on the production code outside these test modules. This is done to save tokens on extremely large files. If you must, first grep to find where this section is and simply read the lines before that. The tests will always be at the end of the code and you can safely assume they will not be interspersed through the file.
+- When writing any code, go easy on comments and documentation. I prefer when code is self-documenting and comments are reserved for tricky code to understand at first glance. Only add documentation to functions/methods, modules, and types when I request it.
