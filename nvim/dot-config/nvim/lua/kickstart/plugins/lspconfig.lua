@@ -303,6 +303,12 @@ return {
         automatic_installation = false,
         handlers = {
           function(server_name)
+            -- Skip servers configured elsewhere (e.g., vtsls in typescript.lua, rust_analyzer in rustaceanvim.lua)
+            local externally_configured = { vtsls = true, rust_analyzer = true }
+            if externally_configured[server_name] then
+              return
+            end
+
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling

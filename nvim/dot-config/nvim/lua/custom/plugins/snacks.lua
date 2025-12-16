@@ -11,7 +11,7 @@ return {
       explorer = {
         enabled = true,
         exclude = {
-          "**/.DS_Store",
+          '**/.DS_Store',
         },
         -- Add this to prevent actions during swap recovery:
         on_attach = function(bufnr)

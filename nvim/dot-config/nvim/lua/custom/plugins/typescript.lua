@@ -3,9 +3,14 @@
 return {
   {
     'neovim/nvim-lspconfig',
-    init = function()
+    dependencies = { 'saghen/blink.cmp' },
+    opts = function(_, opts)
+      -- Get capabilities from blink.cmp for better LSP support
+      local capabilities = require('blink.cmp').get_lsp_capabilities()
+
       -- vtsls configuration (TypeScript/JavaScript)
       vim.lsp.config('vtsls', {
+        capabilities = capabilities,
         filetypes = {
           'javascript',
           'javascriptreact',
@@ -46,6 +51,7 @@ return {
 
       -- ESLint LSP configuration
       vim.lsp.config('eslint', {
+        capabilities = capabilities,
         settings = {
           workingDirectories = { mode = 'auto' },
         },
@@ -114,6 +120,8 @@ return {
           end, 'Fix All Diagnostics')
         end,
       })
+
+      return opts
     end,
   },
 }
