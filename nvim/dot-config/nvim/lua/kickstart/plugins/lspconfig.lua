@@ -17,15 +17,34 @@ return {
     },
   },
   {
+    -- Mason tool installer - must load early to auto-install on VimEnter
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
+    lazy = false, -- Load immediately so VimEnter autocmd works
+    dependencies = {
+      { 'mason-org/mason.nvim', opts = {} },
+    },
+    opts = {
+      ensure_installed = {
+        'stylua', -- Used to format Lua code
+        'clang-format', -- Used to format C/C++ code
+        'cpplint', -- Used to lint C/C++ code
+        'vtsls', -- TypeScript/JavaScript LSP
+        'eslint-lsp', -- ESLint LSP
+        'prettier', -- Code formatter
+        'lua-language-server', -- Lua LSP
+        'cypher-language-server', -- Cypher/Neo4j LSP
+      },
+      run_on_start = true,
+      auto_update = false,
+    },
+  },
+  {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
-      -- Automatically install LSPs and related tools to stdpath for Neovim
-      -- Mason must be loaded before its dependents so we need to set it up here.
-      -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'mason-org/mason.nvim', opts = {} },
+      -- Mason must be loaded before its dependents
+      'mason-org/mason.nvim',
       'mason-org/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
@@ -269,34 +288,8 @@ return {
         cypher_ls = {},
       }
 
-      -- Ensure the servers and tools above are installed
-      --
-      -- To check the current status of installed tools and/or manually install
-      -- other tools, you can run
-      --    :Mason
-      --
-      -- You can press `g?` for help in this menu.
-      --
-      -- `mason` had to be setup earlier: to configure its options see the
-      -- `dependencies` table for `nvim-lspconfig` above.
-      --
-      -- You can add other tools here that you want Mason to install
-      -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
-        'clang-format', -- Used to format C/C++ code
-        'cpplint', -- Used to lint C/C++ code
-        'vtsls', -- TypeScript/JavaScript LSP
-        'eslint-lsp', -- ESLint LSP
-        'prettier', -- Code formatter
-        'cypher-language-server', -- Cypher/Neo4j LSP
-      })
-      require('mason-tool-installer').setup {
-        ensure_installed = ensure_installed,
-        run_on_start = true,
-        auto_update = false,
-      }
+      -- mason-tool-installer is configured separately above with lazy = false
+      -- to ensure it runs on VimEnter before lspconfig loads
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
