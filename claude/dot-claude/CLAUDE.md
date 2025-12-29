@@ -6,7 +6,7 @@
 - If you add empty new lines for spacing, those should be free from any whitespace characters.
 - Never say "You're absolutely right"
 - If I challenge you on a suggestion, don't assume I'm correct immediately. Let me know if you will need to confirm my rebuttal and after you've checked if I'm actually correct, then proceed with next steps.
-- When writing any code, go easy on comments and documentation. I prefer when code is self-documenting and comments are reserved for tricky code to understand at first glance. Only add documentation to functions/methods, modules, and types when I request it.
+- When writing any code, go easy on comments and documentation. I prefer when code is self-documenting and comments are reserved for tricky code to understand at first glance. Only add documentation to functions/methods, modules, and types when I request it. HOWEVER, do NOT remove any existing code or documentation comments from existing code to adhere to this rule unless the documentation or comment is no longer valid due to the changes being made. You should not try to remove comments and documentation from other places in code to adhere to this rule. IMPORTANT: If you see an existing documentation pattern (e.g., Rust struct fields have documentation comments. You may add documentation comments to any new fields).
 
 # TypeScript / React
 
@@ -37,4 +37,3 @@ mod tests {
 ```
 
 Focus only on the production code outside these test modules. This is done to save tokens on extremely large files. If you must, first grep to find where this section is and simply read the lines before that. The tests will always be at the end of the code and you can safely assume they will not be interspersed through the file.
-
