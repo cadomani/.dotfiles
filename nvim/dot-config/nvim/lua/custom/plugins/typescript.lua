@@ -44,6 +44,15 @@ return {
               propertyDeclarationTypes = { enabled = true },
               variableTypes = { enabled = false },
             },
+            tsserver = {
+              maxTsServerMemory = 8192,
+              watchOptions = {
+                excludeDirectories = { '**/node_modules', '**/.git' },
+              },
+            },
+            preferences = {
+              includePackageJsonAutoImports = 'off',
+            },
           },
         },
       })
@@ -118,6 +127,11 @@ return {
               },
             }
           end, 'Fix All Diagnostics')
+
+          -- Custom keymaps (leader-based)
+          map('<leader>cr', vim.lsp.buf.rename, 'Rename')
+          map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
+          map('<leader>cd', vim.diagnostic.open_float, 'Line Diagnostics')
         end,
       })
 
@@ -125,3 +139,4 @@ return {
     end,
   },
 }
+
