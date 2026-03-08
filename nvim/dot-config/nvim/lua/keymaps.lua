@@ -51,4 +51,8 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Treat visual lines like physical lines, preserving line counts
+vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true })
+vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true })
+
 -- vim: ts=2 sts=2 sw=2 et
