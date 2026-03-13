@@ -12,8 +12,6 @@ return {
           float_win_config = {
             border = 'rounded',
           },
-          crate_test_executor = 'neotest',
-          test_executor = 'neotest',
         },
         -- LSP configuration
         server = {
@@ -40,16 +38,27 @@ return {
 
             -- Line diagnostics
             vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, vim.tbl_extend('force', opts, { desc = 'LSP: Line Diagnostics' }))
+
+            vim.keymap.set(
+              'n',
+              '<leader>cR',
+              '<cmd>RustAnalyzer reloadSettings<CR>',
+              vim.tbl_extend('force', opts, { desc = 'Rust: Reload Analyzer Settings' })
+            )
           end,
           default_settings = {
             -- rust-analyzer language server configuration
             ['rust-analyzer'] = {
               cargo = {
-                allFeatures = true,
-                loadOutDirsFromCheck = true,
+                allTargets = true,
+                features = {},
+                noDefaultFeatures = false,
                 buildScripts = {
                   enable = true,
                 },
+              },
+              check = {
+                allTargets = true,
               },
               diagnostics = {
                 enable = true,
