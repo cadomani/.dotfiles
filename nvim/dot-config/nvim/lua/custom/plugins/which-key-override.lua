@@ -5,6 +5,9 @@ return {
     'folke/which-key.nvim',
     opts = {
       delay = 250, -- milliseconds before which-key shows
+      spec = {
+        { '<leader>l', group = '[L]SP' },
+      },
     },
   },
 }

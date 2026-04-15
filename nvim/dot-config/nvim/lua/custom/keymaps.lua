@@ -44,6 +44,42 @@ vim.keymap.set('i', ';', ';<c-g>u')
 -- Command abbreviations
 vim.cmd.cabbrev('Qa', 'qa')
 
+-- LSP restart
+vim.keymap.set('n', '<leader>lr', function()
+  vim.cmd 'LspRestart'
+  vim.notify('LSP restarted', vim.log.levels.INFO)
+end, { desc = 'LSP: Restart' })
+
+-- LSP hard resync: reload all file buffers from disk, then notify all LSP
+-- clients about every changed file in a single batched notification.
+vim.keymap.set('n', '<leader>lR', function()
+  local changes = {}
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == '' then
+      local name = vim.api.nvim_buf_get_name(buf)
+      if name ~= '' and vim.fn.filereadable(name) == 1 then
+        vim.api.nvim_buf_call(buf, function()
+          vim.cmd 'e!'
+        end)
+        table.insert(changes, {
+          uri = vim.uri_from_fname(name),
+          type = 2, -- Changed
+        })
+      end
+    end
+  end
+
+  if #changes > 0 then
+    for _, client in ipairs(vim.lsp.get_clients()) do
+      if client:supports_method('workspace/didChangeWatchedFiles') then
+        client:notify('workspace/didChangeWatchedFiles', { changes = changes })
+      end
+    end
+  end
+
+  vim.notify(('Resynced %d buffer(s)'):format(#changes), vim.log.levels.INFO)
+end, { desc = 'LSP: Hard Resync All Buffers' })
+
 -- C++ specific keymaps
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'c', 'cpp' },
