@@ -12,5 +12,8 @@
 
 .DS_Store
 
+# Machine-specific Hyprland monitor config
+hypr/dot-config/hypr/monitors.conf
+
 # Temporary nvim directory (migration artifact)
 nvim-old/
