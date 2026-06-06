@@ -3,6 +3,7 @@ return {
     'nvim-treesitter/nvim-treesitter',
     lazy = false,
     build = ':TSUpdate',
+    branch = 'main',
     config = function()
       require('nvim-treesitter').setup({
         install_dir = vim.fn.stdpath('data') .. '/site',
@@ -16,17 +17,8 @@ return {
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
           if pcall(vim.treesitter.start, args.buf) then
-            -- Optionally enable treesitter-based indentation
             vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
           end
-        end,
-      })
-
-      -- Ruby needs regex highlighting for indent rules
-      vim.api.nvim_create_autocmd('FileType', {
-        pattern = 'ruby',
-        callback = function()
-          vim.bo.indentexpr = ''
         end,
       })
     end,
