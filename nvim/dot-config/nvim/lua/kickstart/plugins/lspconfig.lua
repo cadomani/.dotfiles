@@ -33,6 +33,7 @@ return {
         'prettier', -- Code formatter
         'lua-language-server', -- Lua LSP
         'cypher-language-server', -- Cypher/Neo4j LSP
+        'prisma-language-server', -- Prisma schema LSP
       },
       run_on_start = true,
       auto_update = false,

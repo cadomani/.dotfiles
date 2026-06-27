@@ -10,7 +10,7 @@ return {
       })
 
       -- Install parsers (runs async, no-op if already installed)
-      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'typescript', 'tsx', 'javascript' }
+      local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'typescript', 'tsx', 'javascript', 'prisma' }
       require('nvim-treesitter').install(parsers)
 
       -- Enable treesitter highlighting for all filetypes with a parser
