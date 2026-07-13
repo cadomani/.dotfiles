@@ -75,19 +75,60 @@ resolve the discrepancy by inference.
 
 ## Runbook
 
-### 1. Before the machine is wiped (do this on Arch, while it still boots)
+### 1. Before the machine is wiped
 
-- [ ] **Back up `~/.ssh/id_ed25519` (the private key) somewhere off this machine.** It is
-      not in the repo. It is the key GitHub authenticates with and the key in
-      `authorizedKeys`. Losing it is annoying, not fatal — but recovering costs an hour.
+- [x] The Arch machine's `~/.ssh/id_ed25519` has been backed up off-machine.
+
+Keep two different keys straight, because they do two unrelated jobs:
+
+- **The MacBook Pro's key** is in `users.users.carlos.openssh.authorizedKeys.keys`. It is
+  the *only* entry, and since sshd here is key-only, it is the entire inbound attack surface
+  and the entire inbound access path. Carlos drives this machine from the MacBook.
+- **The backed-up Arch key** is an *outbound* credential — the one GitHub knows. It has no
+  business in `authorizedKeys` (nothing would hold its private half in a position to
+  connect inward to this host), and it was removed from there.
 
 ### 2. On the installer ISO
 
-Boot the NixOS minimal ISO (x86_64) from USB. The live user is `nixos`; sudo needs no
-password. Wired ethernet should come up on DHCP.
+Boot the NixOS minimal ISO (x86_64) from USB. Wired ethernet comes up on DHCP.
+
+#### Getting in from the MacBook
+
+Carlos runs the agent from the MacBook, so the first job is SSH into the ISO. Verified
+against our pinned nixpkgs (`nixos/modules/profiles/installation-device.nix`):
+
+- sshd **is** enabled on the ISO
+- the console **autologins** as `nixos`, with passwordless sudo
+- `nixos` and `root` both have **empty passwords** — and sshd refuses to authenticate an
+  empty password, so SSH does not work until someone changes that
+
+That "someone" has to be at the physical console — which is fine, because booting the USB
+and picking the firmware boot entry already requires being there. At the (autologged-in)
+console:
 
 ```sh
-# Tools. claude-code is packaged in nixpkgs (2.1.206 in our pinned rev).
+passwd              # any throwaway password; it lives only as long as the ISO session
+ip -brief addr      # note the address
+```
+
+Then from the MacBook:
+
+```sh
+ssh nixos@<address>
+```
+
+**Run the agent inside that SSH session, on the target machine** — not on the MacBook
+driving the target through `ssh` one command at a time. The runbook below assumes commands
+execute where the disks are.
+
+(A custom ISO with the key pre-baked would remove the console step. It was considered and
+rejected: it is a new thing to build, flash and debug, in exchange for saving one `passwd`
+on a machine you are already standing in front of.)
+
+#### Tools and repo
+
+```sh
+# claude-code is packaged in nixpkgs (2.1.206 in our pinned rev).
 nix-shell -p git
 
 git clone -b nixos https://github.com/cadomani/.dotfiles.git ~/dotfiles
@@ -178,14 +219,21 @@ deliberately no GRUB and no os-prober, and the Windows ESP is never mounted.
 
 - [ ] LUKS prompt appears and accepts the passphrase (a USB keyboard working here is what
       `usbhid` / `xhci_pci` in the initrd are for)
-- [ ] Log in as `carlos` / `changeme`, then **immediately `passwd`**
+- [ ] Log in as `carlos` / `changeme` at the console, then **immediately `passwd`**
 - [ ] Network is up (`ping -c1 github.com`)
-- [ ] Restore `~/.ssh/id_ed25519`, `chmod 600`, and switch the remote to SSH so you can push
+- [ ] **`ssh carlos@<address>` from the MacBook works** — this is the first real test that
+      `authorizedKeys` is right. If it fails you still have the console; if you had *also*
+      gotten `passwd` wrong you would have neither.
 - [ ] Clone the repo to its permanent home and rebuild **from the installed system** — this
       is the actual done-criterion, not the install:
 
-      git clone -b nixos git@github.com:cadomani/.dotfiles.git ~/dev/dotfiles
+      git clone -b nixos https://github.com/cadomani/.dotfiles.git ~/dev/dotfiles
       sudo nixos-rebuild switch --flake ~/dev/dotfiles#desktop
+
+- [ ] To *push* from the desktop, give it an outbound GitHub credential — either restore the
+      backed-up Arch key to `~/.ssh/id_ed25519` (`chmod 600`) and switch the remote to SSH,
+      or generate a fresh key here and add it to GitHub, retiring the Arch one. Cloning over
+      HTTPS needs neither, which is why the clone above does.
 
 - [ ] **Reboot into Windows from the firmware menu** and confirm it still works
 - [ ] Move stage 0 to `Done` in `ROADMAP.md`, commit, push

@@ -64,9 +64,18 @@
     # `hashedPasswordFile` is a tracked backlog item.
     initialPassword = "changeme";
 
-    # SSH is key-only (see below), so this key is the sole way in over the network.
+    # SSH is key-only (see below), so this list is the *entire* set of ways in over the
+    # network. Get it wrong and the only way back is the physical console.
+    #
+    # This is the MacBook Pro's key. It is deliberately the only one: the key this repo
+    # previously carried belonged to the Arch install that this machine's disk is about to
+    # stop being, so nothing would hold its private half in a position to connect *inward*
+    # to this host. A dead key in authorizedKeys is not a fallback, it is just a key.
+    #
+    # Note this is unrelated to any key the desktop later uses to push to GitHub -- that is
+    # an outbound credential and does not belong here.
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMKSFCzQLf27gDx707NBDAuzjZrcdyEGxTbh2KheldnV Arch"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDgc8df1KoG0THI4ddSDowLgQdoorJajZ6eGTMtB8OxD Mac"
     ];
   };
 

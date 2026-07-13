@@ -120,6 +120,24 @@ the destination is a sops-nix-managed `hashedPasswordFile`.
 
 ---
 
+## 2026-07-12 — `authorizedKeys` holds the MacBook's key, and only that
+
+**Chose:** one entry in `users.users.carlos.openssh.authorizedKeys.keys` — the MacBook Pro's
+public key. Carlos administers this machine from the MacBook.
+
+**Rejected:** keeping the Arch machine's key alongside it as a "fallback". It is not a
+fallback. Its private half was backed up as an *outbound* credential (it is the key GitHub
+knows), and nothing will hold it in a position to connect *inward* to this host. A key in
+`authorizedKeys` that nobody can authenticate with is not redundancy, it is just inbound
+attack surface that does nothing.
+
+**Consequence worth knowing:** sshd is key-only (`PasswordAuthentication = false`), so this
+single list is the entire remote access path. If it is wrong, the way back in is the
+physical console — which is why "ssh in from the MacBook" is an explicit checklist item on
+first boot, performed while the console is still right there.
+
+---
+
 ## 2026-07-12 — All existing dotfiles dropped, including neovim
 
 **Chose:** start from nothing. No config is ported.
