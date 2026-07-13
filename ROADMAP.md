@@ -20,7 +20,11 @@ _Nothing yet. The machine still runs Arch._
 Repo has a flake; the machine boots from it. LUKS unlocks, TTY, network, SSH, user.
 **No GUI, no NVIDIA driver, no home-manager.**
 
-Written, evaluates, **not yet installed**:
+Written, and **built to a complete system closure on the outgoing Arch machine**
+(`nixos-system-desktop-26.11.20260711.e7a3ca8`, kernel 6.18.38) — so it compiles; what is
+unproven is only that it boots. **Not yet installed.**
+
+The install procedure, and the handoff to the agent who will run it, is **`INSTALL.md`**.
 
 - `flake.nix` — nixpkgs `nixos-unstable` + disko, one `nixosConfiguration`: `desktop`
 - `hosts/desktop/disko.nix` — GPT, 2G ESP, LUKS (`cryptroot`) → btrfs, subvolumes
