@@ -33,7 +33,6 @@ return {
         'prettier', -- Code formatter
         'lua-language-server', -- Lua LSP
         'cypher-language-server', -- Cypher/Neo4j LSP
-        'prisma-language-server', -- Prisma schema LSP
       },
       run_on_start = true,
       auto_update = false,
@@ -108,6 +107,42 @@ return {
           map('<leader>cr', vim.lsp.buf.rename, 'Rename')
           map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
           map('<leader>cd', vim.diagnostic.open_float, 'Line Diagnostics')
+
+          -- Additional LSP actions
+          map('<leader>cf', function()
+            vim.lsp.buf.format { async = true }
+          end, 'Format (LSP)')
+          map('<leader>cs', vim.lsp.buf.signature_help, 'Signature Help')
+          map('<leader>cl', vim.lsp.codelens.run, 'Run Code Lens')
+
+          -- Diagnostic navigation (Neovim 0.11+ vim.diagnostic.jump API)
+          map(']d', function()
+            vim.diagnostic.jump { count = 1, float = true }
+          end, 'Next Diagnostic')
+          map('[d', function()
+            vim.diagnostic.jump { count = -1, float = true }
+          end, 'Prev Diagnostic')
+          map(']e', function()
+            vim.diagnostic.jump { count = 1, float = true, severity = vim.diagnostic.severity.ERROR }
+          end, 'Next Error')
+          map('[e', function()
+            vim.diagnostic.jump { count = -1, float = true, severity = vim.diagnostic.severity.ERROR }
+          end, 'Prev Error')
+
+          -- Toggle full multi-line diagnostics inline (virtual_lines) for the
+          -- current line. Lets you actually READ long messages (e.g. nixd
+          -- warnings) without opening a picker. Toggles back to compact
+          -- virtual_text. Requires Neovim 0.11+.
+          map('gK', function()
+            local cfg = vim.diagnostic.config() or {}
+            if cfg.virtual_lines then
+              vim.diagnostic.config { virtual_lines = false, virtual_text = vim.g.__diag_virtual_text }
+            else
+              -- Remember the existing virtual_text config so we can restore it.
+              vim.g.__diag_virtual_text = cfg.virtual_text
+              vim.diagnostic.config { virtual_lines = { current_line = true }, virtual_text = false }
+            end
+          end, 'Toggle Inline Diagnostics')
 
           -- Enhanced hover with border and dimensions
           map('K', function()
