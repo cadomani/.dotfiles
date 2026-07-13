@@ -88,52 +88,80 @@ Keep two different keys straight, because they do two unrelated jobs:
   business in `authorizedKeys` (nothing would hold its private half in a position to
   connect inward to this host), and it was removed from there.
 
-### 2. On the installer ISO
+### 2. On the installer ISO — getting a shell for the agent
 
-Boot the NixOS minimal ISO (x86_64) from USB. Wired ethernet comes up on DHCP.
+**The agent runs on the target machine, where the disks are.** That is the only part of this
+that is not negotiable: an agent reasoning about `lsblk` output through a remote shell,
+one `ssh` invocation at a time, is exactly the indirection you do not want adjacent to a
+destructive command. *How* you get that shell is a genuine choice, and both options below
+are fine. Everything from step 3 onward is identical either way.
 
-#### Getting in from the MacBook
+The relevant constraint is that **Claude Code has to authenticate**, which wants a browser
+and a terminal you can paste into. That, not capability, is what separates these.
 
-Carlos runs the agent from the MacBook, so the first job is SSH into the ISO. Verified
-against our pinned nixpkgs (`nixos/modules/profiles/installation-device.nix`):
+#### Option A — Minimal ISO, SSH in from the MacBook
 
-- sshd **is** enabled on the ISO
-- the console **autologins** as `nixos`, with passwordless sudo
-- `nixos` and `root` both have **empty passwords** — and sshd refuses to authenticate an
-  empty password, so SSH does not work until someone changes that
+Verified against our pinned nixpkgs (`nixos/modules/profiles/installation-device.nix`):
+sshd **is** enabled on the ISO, and the console **autologins** as `nixos` with passwordless
+sudo — but `nixos` and `root` both have **empty passwords**, and sshd refuses to
+authenticate an empty password. So SSH does not work until someone changes that, and that
+someone has to be at the physical console. Which is free: booting the USB and picking the
+firmware entry already requires standing there.
 
-That "someone" has to be at the physical console — which is fine, because booting the USB
-and picking the firmware boot entry already requires being there. At the (autologged-in)
-console:
+At the (autologged-in) console:
 
 ```sh
 passwd              # any throwaway password; it lives only as long as the ISO session
 ip -brief addr      # note the address
 ```
 
-Then from the MacBook:
+Then from the MacBook, `ssh nixos@<address>`, and run the agent inside that session.
 
-```sh
-ssh nixos@<address>
-```
+**Why this is the safer default:** it has no dependency on the GPU whatsoever. You get a
+real terminal — scrollback, copy/paste, a browser one window away for the login flow — and
+the graphics stack cannot participate in anything going wrong. That is the same instinct the
+whole stage ordering is built on.
 
-**Run the agent inside that SSH session, on the target machine** — not on the MacBook
-driving the target through `ssh` one command at a time. The runbook below assumes commands
-execute where the disks are.
+#### Option B — Graphical (GNOME) ISO, agent directly on the machine
 
-(A custom ISO with the key pre-baked would remove the console step. It was considered and
-rejected: it is a new thing to build, flash and debug, in exchange for saving one `passwd`
-on a machine you are already standing in front of.)
+Fully self-contained: no SSH, no `passwd`, no second machine. The graphical ISO ships
+**Firefox and GNOME Terminal** (verified: `installation-cd-graphical-base.nix` installs
+`firefox`), so Claude Code's browser login works right there, and you have a terminal with
+working copy/paste and scrollback. Open a terminal and go straight to step 3.
+
+**The caveat, stated honestly:** this machine has an **RTX 5090**, and the ISO has no NVIDIA
+driver — it will fall back to nouveau or to the plain EFI framebuffer. GNOME will most
+likely come up software-rendered and slow, which is entirely good enough for a terminal and
+a browser. But "most likely" is doing real work in that sentence: Blackwell is new, and this
+is unverified. If the graphical ISO will not give you a desktop, do not fight it — fall back
+to Option A, which cannot have this problem.
+
+#### Not recommended — minimal ISO, agent on the bare TTY
+
+It works, but a bare Linux TTY has no browser, no clipboard, and no scrollback. You would be
+reading a login URL off the screen, typing it into another device by hand, and typing the
+resulting code back. Then reading agent output with no way to scroll up. Choose A or B.
+
+#### Rejected — a custom ISO with the key pre-baked
+
+Would remove the `passwd` step in Option A. Not worth it: a new artifact to build, flash and
+debug, to save one command on a machine you are already standing in front of.
 
 #### Tools and repo
 
+`claude-code` is packaged in nixpkgs (2.1.206 in our pinned rev), so the agent does not need
+npm, node, or an installer script — it is one `nix-shell` away on either path:
+
 ```sh
-# claude-code is packaged in nixpkgs (2.1.206 in our pinned rev).
-nix-shell -p git
+nix-shell -p git claude-code
 
 git clone -b nixos https://github.com/cadomani/.dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
+
+Clone over HTTPS, as above. The repo is public, so this needs no credential — and the
+MacBook's key authorizes inbound SSH to the *installed* system, not outbound access to
+GitHub from the ISO. Pushing is dealt with after first boot (step 6).
 
 **Re-verify the drives. This is the gate.**
 
