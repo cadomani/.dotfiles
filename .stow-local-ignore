@@ -1,9 +1,0 @@
-CLAUDE.md
-README.md
-\.git
-\.gitignore
-\.stow-local-ignore
-.*\.zcompdump.*
-.*\.zsh_history
-.*\.shell\.pre-oh-my-zsh
-scripts/
