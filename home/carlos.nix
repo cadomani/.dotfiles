@@ -52,7 +52,14 @@
 
   programs.git = {
     enable = true;
-    userName = "Carlos Domani";
-    userEmail = "carlos.a.domani@gmail.com";
+
+    # `settings` mirrors git's own config file structure, one attribute per section, and is
+    # written to ~/.config/git/config. The older flat options (userName, userEmail,
+    # aliases, extraConfig) still work through rename shims but warn on every rebuild, and
+    # most guides you will find still show them.
+    settings.user = {
+      name = "Carlos Domani";
+      email = "carlos.a.domani@gmail.com";
+    };
   };
 }
