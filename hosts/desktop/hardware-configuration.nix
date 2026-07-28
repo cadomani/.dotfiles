@@ -27,6 +27,12 @@
 
   # Modules the initrd may need *before* a root filesystem exists.
   #
+  #   vmd                     Intel Volume Management Device. When VMD is on in firmware,
+  #                           the NVMe drives sit behind that controller rather than on the
+  #                           PCIe bus directly, so `nvme` alone finds nothing. Reported by
+  #                           nixos-generate-config on the installer ISO; the hand-written
+  #                           list had missed it. Without it the initrd cannot see the root
+  #                           disk and drops to an emergency shell citing a missing device.
   #   nvme                    the root disk is NVMe. Without this, initrd cannot see the
   #                           root device at all and the boot dead-ends.
   #   xhci_pci, usbhid        USB host controller and USB HID. These are what let us TYPE
@@ -36,6 +42,7 @@
   #                           SATA and USB mass storage. Not needed for this boot path, but
   #                           they are what make a USB rescue stick usable from this initrd.
   boot.initrd.availableKernelModules = [
+    "vmd"
     "nvme"
     "xhci_pci"
     "usbhid"
