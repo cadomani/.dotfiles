@@ -254,3 +254,59 @@ a compromise means revoking it everywhere rather than on one machine.
 **Unchanged:** `users.users.carlos.openssh.authorizedKeys.keys` still holds only the
 MacBook's key. Inbound and outbound remain separate credentials doing separate jobs, which
 is the point of the 2026-07-12 entry above.
+
+---
+
+## 2026-07-27: nixpkgs moves as a whole, never diverged per package
+
+**Chose:** move the single `nixpkgs` pin forward with `nix flake update nixpkgs` when
+something newer is wanted. Moved `e7a3ca8092b6` (2026-07-11) to `624af665418d` (2026-07-26)
+to pick up claude-code 2.1.206 through 2.1.220.
+
+**Rejected:** a second nixpkgs input for fast-moving packages, with an overlay taking only
+claude-code from it. It works, but it costs a second full nixpkgs to evaluate, and
+`allowUnfreePredicate` would have to be duplicated, because that setting belongs to a
+nixpkgs instance and not to the system.
+
+**Also rejected:** staying put. The CLI was two weeks and fourteen releases behind and did
+not offer the current models.
+
+**Rationale:** one coherent package set is easier to reason about than two, and it is what
+makes "rebuild and get the same thing" true. A second nixpkgs is disproportionate machinery
+for moving one package by fourteen patch releases.
+
+**The timing rule is the part worth keeping:** update between stages, never during one. The
+update replaces kernel, systemd and glibc at once, and doing that while something else is
+being debugged reintroduces exactly the ambiguity the staged plan exists to remove. It was
+cheap here because the system is minimal and nothing depends on the GPU yet.
+
+**The safety net is generations, not caution.** Every rebuild leaves the previous
+configuration on disk and in the boot menu, ten deep. A bad update is one reboot from being
+undone, which is what makes updating a low-stakes act rather than a careful one.
+
+---
+
+## 2026-07-27: the kernel stays on the nixpkgs default
+
+**Chose:** leave `boot.kernelPackages` unset, so it resolves to `pkgs.linuxPackages`, which
+nixpkgs defines as `linux_default`. That is the 6.18 series today.
+
+**Rejected:** `boot.kernelPackages = pkgs.linuxPackages_latest`, the 7.1 series today.
+
+**Rationale:** `linux_default` tracks a longterm-maintained series, and it is what
+out-of-tree kernel modules are built and tested against. NVIDIA's driver is out-of-tree: it
+compiles against the running kernel's headers, and Linux offers no stable internal API, so a
+mainline bump can leave it unbuildable until NVIDIA ships a matching release. Stage 2 is the
+NVIDIA driver, so the conservative default is the safer base rather than a compromise.
+
+**A newer kernel would not help this GPU anyway.** The proprietary driver lives in an
+out-of-tree module and in userspace, not in the kernel tree, so the kernel version decides
+whether it builds, not whether an RTX 5090 is supported.
+
+**Do not switch this to `linuxPackages_latest` as a cleanup.** If some specific piece of
+hardware ever needs a newer kernel, that is the reason to change it, and the reason belongs
+in this file.
+
+**Unrelated to the installer.** The ISO offered a choice between an LTS kernel and 7.1.5.
+That choice applied only to the live environment and never reached the installed system,
+which is why the running kernel is older than the one the ISO booted.

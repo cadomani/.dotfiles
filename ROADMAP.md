@@ -123,5 +123,7 @@ One line each: what and why, not how. Ordered roughly, not strictly.
   is already on, which is lanzaboote's prerequisite.
 - **`nix.settings.auto-optimise-store`.** Store deduplication. Cheap, but nothing needs it
   yet.
-- **Flake update cadence.** `nixos-unstable` only moves when `nix flake update` is run.
-  Decide how often, and whether to pin per-stage.
+- **Flake update cadence.** Settled in part on 2026-07-27, see `DECISIONS.md`: nixpkgs moves
+  as a whole rather than being diverged per package, and updates happen between stages,
+  never during one. Still open is whether to update on a schedule at all. So far it has been
+  purely on demand, when something specific was wanted.
