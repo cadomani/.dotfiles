@@ -51,6 +51,11 @@
       "networkmanager" # bring links up/down without sudo
     ];
 
+    # The login shell recorded in /etc/passwd. home-manager writes ~/.zshrc but has no way
+    # to edit /etc/passwd, so without this line the login shell stays bash and none of that
+    # config is ever sourced. Paired with programs.zsh.enable below.
+    shell = pkgs.zsh;
+
     # TEMPORARY, AND NOT A SECRET.
     #
     # This string is world-readable in the nix store and in git history forever. It exists
@@ -78,6 +83,19 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDgc8df1KoG0THI4ddSDowLgQdoorJajZ6eGTMtB8OxD Mac"
     ];
   };
+
+  # ------------------------------------------------------------------ shell
+  # The NixOS half of the zsh setup, and it is not optional. This installs zsh system-wide
+  # and registers it in /etc/shells, which is what makes the `shell` line above legal: a
+  # login shell absent from /etc/shells is refused. It also arranges for /etc/zshrc, where
+  # NixOS puts the environment every shell on this system needs.
+  programs.zsh.enable = true;
+
+  # Link share/zsh out of every system package so completion works for system commands too.
+  # Without it `systemctl <tab>` finds nothing while completion for user packages works
+  # perfectly, which is a confusing shape for the problem to take. Recommended by
+  # home-manager's own enableCompletion documentation.
+  environment.pathsToLink = [ "/share/zsh" ];
 
   # ------------------------------------------------------------------ ssh
   services.openssh = {
@@ -113,6 +131,35 @@
     git # `nixos-rebuild --flake .` cannot read a flake in a git repo without it
     vim # edit a config that will not evaluate, before an editor has been configured
   ];
+
+  # ------------------------------------------------------------------ home-manager
+  # Wired in as a NixOS module rather than run standalone, so that `nixos-rebuild switch`
+  # builds the system and the home environment as one unit. Either both land or neither
+  # does, and there is no second command to remember.
+  #
+  # Everything user-facing lives in ../../home/carlos.nix, which holds no NixOS options so
+  # that a nix-darwin host can import it unchanged later. This block is the seam between
+  # the two, and it is the only part that knows it is running on NixOS.
+  home-manager = {
+    # Use the system's nixpkgs instead of letting home-manager instantiate its own. Without
+    # this a single build evaluates nixpkgs twice, which is slower and lets system and user
+    # packages drift onto different builds of the same library.
+    useGlobalPkgs = true;
+
+    # Install user packages into /etc/profiles/per-user/carlos, owned by the system
+    # generation, rather than ~/.nix-profile. This is what makes `nixos-rebuild --rollback`
+    # take the home environment back with it instead of leaving it ahead of the system.
+    useUserPackages = true;
+
+    # On activation home-manager refuses to overwrite a file it does not already manage, and
+    # reports it as an error about a single path that reads like a bug in home-manager.
+    # Renaming the offender aside makes that a non-event. zsh is the likely trigger: started
+    # with no ~/.zshrc it offers to write one, after which home-manager finds a file it did
+    # not put there.
+    backupFileExtension = "hm-bak";
+
+    users.carlos = ../../home/carlos.nix;
+  };
 
   # ------------------------------------------------------------------ state
   # Not a version to keep current -- do not "update" it. It records which release's
