@@ -233,3 +233,24 @@ generated. There is nothing yet worth putting in one.
 **Only non-default options are set.** `enableCompletion`, `history.ignoreDups`,
 `history.ignoreSpace` and `history.share` are already true upstream (checked in the module
 source), so restating them would imply a decision where none was made.
+
+---
+
+## 2026-07-27: the Arch key is reused as the desktop's outbound GitHub credential
+
+**Chose:** restore the backed-up Arch `id_ed25519` to `~/.ssh/id_ed25519` on the desktop and
+point the repo's remote at SSH.
+
+**Rejected:** generating a fresh per-machine key and retiring the Arch one, which was the
+recommendation at the time.
+
+**Rationale:** the key is in Carlos's possession, GitHub already trusts it, and other
+services already know it. Rotating it means finding and updating every one of them for no
+benefit that exists today.
+
+**Consequence, accepted knowingly:** the private half now exists in at least two places, so
+a compromise means revoking it everywhere rather than on one machine.
+
+**Unchanged:** `users.users.carlos.openssh.authorizedKeys.keys` still holds only the
+MacBook's key. Inbound and outbound remain separate credentials doing separate jobs, which
+is the point of the 2026-07-12 entry above.

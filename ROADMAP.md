@@ -45,11 +45,41 @@ Verified on the installed machine, in this order:
 - [x] `nixos-rebuild switch --flake ~/.dotfiles#desktop` succeeds from the installed system
 - [x] Windows still boots, and is still first in the firmware boot order
 
+### Stage 1 — home-manager plumbing
+
+**Completed 2026-07-27.** home-manager is wired in as a NixOS module, so a single
+`nixos-rebuild switch` builds the system and the home environment together. zsh is the login
+shell, with starship, autosuggestions and syntax highlighting. Git identity is declarative.
+
+- `home/carlos.nix` — the whole user environment, holding no NixOS options so that a
+  nix-darwin host can import it unchanged
+- `hosts/desktop/default.nix` — the seam between the two: `useGlobalPkgs`,
+  `useUserPackages`, `backupFileExtension`, plus the NixOS half of zsh (login shell,
+  `/etc/shells`, system-package completion)
+
+Verified on the machine:
+
+- [x] `readlink -f ~/.zshrc` resolves into `/nix/store`, so home-manager owns the dotfiles
+- [x] `$SHELL` is zsh on a fresh login, and starship renders
+- [x] `git config --get user.email` returns the declared value
+- [x] `flake.lock` pins home-manager (`cbb77679b3d9`), and the desktop can push to GitHub
+
+Two things surfaced that were not anticipated:
+
+- **Ghostty's terminfo is absent from a stock NixOS host.** `TERM=xterm-ghostty` with no
+  matching entry left zsh's line editor miscomputing cursor positions and echoing typed
+  characters twice. Fixed with `pkgs.ghostty.terminfo`, which is what the nixpkgs ghostty
+  package recommends for exactly this case.
+- **`sudo passwd` changes root's password, not your own.** Under sudo the current user is
+  root, so the account has to be named: `sudo passwd carlos`. Compounding it, `passwd` as a
+  normal user enforces quality checks and refuses weak passwords where root is not checked,
+  so an earlier attempt had failed without that being noticed.
+
 ---
 
 ## In progress
 
-_Nothing. Stage 1 (home-manager plumbing) is next; see the Backlog._
+_Nothing. Stage 2 (NVIDIA) is next; see the Backlog._
 
 ---
 
@@ -59,10 +89,6 @@ One line each: what and why, not how. Ordered roughly, not strictly.
 
 ### Next stages (from the handoff)
 
-- **Stage 1 — home-manager plumbing.** Wire home-manager in as a NixOS module; a shell and
-  git config built fresh. Verifiable from a TTY, which is the point: prove the plumbing
-  before graphics can confuse the diagnosis. Neovim is *not* being ported — it will be
-  written from scratch when we get there.
 - **Stage 2 — NVIDIA.** Driver only, no compositor. RTX 5090 (Blackwell) forces
   `hardware.nvidia.open = true` and a recent driver branch; verify the nixpkgs attribute
   against upstream at the time, do not recall it.
