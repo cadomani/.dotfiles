@@ -9,42 +9,47 @@ is only one candidate. Stages are not merged.
 
 ## Done
 
-_Nothing yet. The machine still runs Arch._
+### Stage 0 — Bootable minimum
+
+**Installed 2026-07-27.** The machine boots NixOS from this flake. LUKS unlocks, TTY,
+network, SSH, and `nixos-rebuild switch` all work from the installed system.
+**No GUI, no NVIDIA driver, no home-manager.**
+
+Running `nixos-system-desktop-26.11.20260711.e7a3ca8`, the same closure that had been built
+ahead of time on the outgoing Arch machine. The repo lives at **`~/.dotfiles`** on the
+desktop, matching its path on the MacBook so that a later nix-darwin host can share aliases
+and module paths.
+
+- `flake.nix` — nixpkgs `nixos-unstable` + disko, one `nixosConfiguration`: `desktop`
+- `hosts/desktop/disko.nix` — GPT, 2G ESP, LUKS (`cryptroot`) → btrfs, subvolumes
+  `/root` `/home` `/nix`, no swap
+- `hosts/desktop/hardware-configuration.nix` — reconciled against `nixos-generate-config`
+  on the ISO, no longer provisional
+- `hosts/desktop/default.nix` — systemd-boot, systemd initrd, NetworkManager, locale/time,
+  user, sshd (key-only), nix flakes + GC
+
+Verified on the installed machine, in this order:
+
+- [x] Arch `~/.ssh/id_ed25519` backed up off-machine before the wipe
+- [x] `hardware-configuration.nix` reconciled. The generator reported **`vmd`** (Intel
+      Volume Management Device), which the hand-written list had missed. The NVMe drives sit
+      behind that controller, so without it the initrd finds no root disk and drops to an
+      emergency shell. This was a guaranteed first-boot failure, and reconciling the file
+      before installing is the only reason it was caught. Fixed in `3d6939c`.
+- [x] disko touched the Samsung only. The Crucial's filesystem UUIDs (`BA99-B662`,
+      `F6209AC6209A8CED`, `1A1A53D51A53AD0F`) were byte-identical before and after the run.
+      That, not care, is the evidence Windows was never at risk.
+- [x] `nixos-install`, reboot, LUKS passphrase accepted on a USB keyboard
+- [x] `passwd` run on first login; the committed `initialPassword` no longer applies
+- [x] `ssh carlos@<addr>` from the MacBook succeeds on key auth alone
+- [x] `nixos-rebuild switch --flake ~/.dotfiles#desktop` succeeds from the installed system
+- [x] Windows still boots, and is still first in the firmware boot order
 
 ---
 
 ## In progress
 
-### Stage 0 — Bootable minimum
-
-Repo has a flake; the machine boots from it. LUKS unlocks, TTY, network, SSH, user.
-**No GUI, no NVIDIA driver, no home-manager.**
-
-Written, and **built to a complete system closure on the outgoing Arch machine**
-(`nixos-system-desktop-26.11.20260711.e7a3ca8`, kernel 6.18.38) — so it compiles; what is
-unproven is only that it boots. **Not yet installed.**
-
-The install procedure, and the handoff to the agent who will run it, is **`INSTALL.md`**.
-
-- `flake.nix` — nixpkgs `nixos-unstable` + disko, one `nixosConfiguration`: `desktop`
-- `hosts/desktop/disko.nix` — GPT, 2G ESP, LUKS (`cryptroot`) → btrfs, subvolumes
-  `/root` `/home` `/nix`, no swap
-- `hosts/desktop/hardware-configuration.nix` — hand-written, **provisional**
-- `hosts/desktop/default.nix` — systemd-boot, systemd initrd, NetworkManager, locale/time,
-  user, sshd (key-only), nix flakes + GC
-
-Remaining before this stage is Done:
-
-- [ ] **Back up `~/.ssh/id_ed25519` off this machine.** The private key is not in the repo
-      and dies with the Arch install. It is the key GitHub knows and the key in
-      `authorizedKeys`.
-- [ ] Regenerate `hardware-configuration.nix` on the ISO with
-      `nixos-generate-config --no-filesystems --root /mnt` and diff against the hand-written
-      one. Reconcile any difference before installing.
-- [ ] Run disko (destructive — Samsung 990 PRO only), `nixos-install`, reboot.
-- [ ] `passwd` — replace the placeholder `initialPassword`.
-- [ ] Confirm `nixos-rebuild switch --flake .#desktop` succeeds **from the installed system**.
-- [ ] Confirm Windows still boots from the firmware boot menu.
+_Nothing. Stage 1 (home-manager plumbing) is next; see the Backlog._
 
 ---
 
@@ -71,7 +76,15 @@ One line each: what and why, not how. Ordered roughly, not strictly.
 
 - **Replace the placeholder password.** `initialPassword = "changeme"` is committed to a
   *public* repo. SSH is key-only so it is not remotely exploitable, but it should become a
-  sops-nix-managed `hashedPasswordFile`. Until then: change it with `passwd` after install.
+  sops-nix-managed `hashedPasswordFile`. `passwd` was run on first login, so the value is
+  inert on *this* machine, but it remains in git history and would apply to any future host
+  built from this config.
+
+- **Firmware boot order.** The firmware boots Windows first; NixOS is reached by picking
+  **"Linux Boot Manager"** from the boot menu ("UEFI OS" is the fallback loader at
+  `\EFI\BOOT\BOOTX64.EFI`, which also works). Reorderable in the firmware settings or with
+  `efibootmgr -o`. Left alone because choosing at boot is not a burden and the current order
+  fails safe toward the OS with data on it.
 - **zram.** The chosen answer to memory pressure, since we carved no swap. One option, no
   disk-layout change. Not needed at 128 GB until proven otherwise.
 - **`/var/log` subvolume, and impermanence.** Adding a btrfs subvolume later needs no

@@ -1,11 +1,13 @@
 # Hardware scan results for `desktop`.
 #
-# PROVISIONAL -- this file is normally machine-generated, and we could not generate it:
-# `nixos-generate-config` does not exist on the Arch install we authored this from. Every
-# line below is therefore hand-written and justified, and it must be checked against the
-# real generator on the installer ISO before we commit to it:
+# This file is normally machine-generated. It could not be generated when it was written,
+# because `nixos-generate-config` does not exist on the Arch install we authored it from,
+# so every line is hand-written and justified rather than emitted by a probe.
 #
-#     nixos-generate-config --no-filesystems --root /mnt --dir /tmp/gen
+# RECONCILED 2026-07-27 against the real generator on the installer ISO. It found exactly
+# one hardware fact this file lacked, `vmd`, which is now present. To repeat the check:
+#
+#     nixos-generate-config --no-filesystems --dir /tmp/gen
 #     diff /tmp/gen/hardware-configuration.nix hosts/desktop/hardware-configuration.nix
 #
 # `--no-filesystems` is not optional. disko already defines `fileSystems` and

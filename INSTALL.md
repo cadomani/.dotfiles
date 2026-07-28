@@ -26,10 +26,42 @@ wants to crib from them.
 
 ## State of play
 
-Stage 0 is **written, evaluated, and built — but not installed.** On the outgoing Arch
-machine, `nixosConfigurations.desktop` built all the way to a complete system closure
-(`nixos-system-desktop-26.11.20260711.e7a3ca8`, kernel 6.18.38). So the config compiles;
-what is unproven is only that it *boots*.
+> **This runbook was executed on 2026-07-27 and the install is complete.** Stage 0 is done;
+> see `ROADMAP.md`. What follows is kept as the record of how it was done. Read *What
+> actually happened* first, because six things diverged from it.
+
+On the outgoing Arch machine, `nixosConfigurations.desktop` had already built to a complete
+system closure (`nixos-system-desktop-26.11.20260711.e7a3ca8`, kernel 6.18.38), and that is
+the closure now running on the machine.
+
+### What actually happened
+
+1. **`hardware-configuration.nix` was missing `vmd`.** The reconciliation in step 3 was not
+   a formality: `nixos-generate-config` reported `vmd` (Intel Volume Management Device) and
+   the hand-written list lacked it. The NVMe drives sit behind that controller, so the
+   initrd would have found no root disk and dropped to an emergency shell, with an error
+   naming a missing device rather than a missing module. Fixed in `3d6939c`. This was the
+   only difference between the two files.
+
+2. **The graphical ISO does not work on this machine.** Option B was tried first and failed
+   the way it warned it might: the RTX 5090 produced a hung NixOS splash and never reached a
+   desktop. Option A (minimal ISO, SSH in from the MacBook) worked with no trouble at all.
+   Blackwell plus nouveau is now a confirmed non-starter rather than a suspicion. Do not
+   spend time on the graphical ISO here.
+
+3. **`nixos-install` needs flakes enabled explicitly.** The ISO's nix does not enable them,
+   and `nixos-install` shells out to nix internally where `--extra-experimental-features`
+   does not reach. Set it in the environment instead, as step 5 now shows.
+
+4. **`--dry-run` prints a store path, not the script.** To audit what disko will do you have
+   to read the file it points at. Step 4 now shows how.
+
+5. **The repo lives at `~/.dotfiles`**, not `~/dev/dotfiles`, matching its path on the
+   MacBook so a later nix-darwin host can share aliases and module paths.
+
+6. **Firmware boots Windows first, and the NixOS entry is called "Linux Boot Manager."**
+   Not "NixOS". There is also a "UEFI OS" entry, which is the fallback loader at
+   `\EFI\BOOT\BOOTX64.EFI` and also works.
 
 Verified by evaluation, not by memory:
 
@@ -197,25 +229,42 @@ Then re-check that it still evaluates, and commit any change (flakes only see gi
 files, so an uncommitted edit is invisible to the next command):
 
 ```sh
-nix --extra-experimental-features 'nix-command flakes' \
-  eval .#nixosConfigurations.desktop.config.system.build.toplevel.drvPath
+nix --extra-experimental-features 'nix-command flakes' eval .#nixosConfigurations.desktop.config.system.build.toplevel.drvPath
 git commit -am "fix: reconcile hardware-configuration.nix with nixos-generate-config"
 ```
+
+Success is a single store path ending in `.drv`. Nothing is built; this only proves the
+configuration evaluates, which is where a typo or a duplicate option definition surfaces
+while a disk is still intact.
 
 ### 4. Partition — DESTRUCTIVE, ask first
 
 This erases the Samsung. Get a clear go-ahead from Carlos immediately before running it.
 
+First read what it will do. Adding `--dry-run` builds the script and prints **the path to
+it**, not its contents, so the audit is a second command:
+
 ```sh
-sudo nix --extra-experimental-features 'nix-command flakes' run \
-  github:nix-community/disko/ff8702b4de27f72b4c78573dfb89ec74e36abdf1 -- \
-  --mode destroy,format,mount \
-  --flake .#desktop
+sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko/ff8702b4de27f72b4c78573dfb89ec74e36abdf1 -- --mode destroy,format,mount --flake .#desktop --dry-run
+```
+
+```sh
+grep -o -e '/dev/[^" )]*' /nix/store/<hash>-disko-destroy-format-mount/bin/disko-destroy-format-mount | sort -u
+```
+
+That prints every device path the script can touch, deduplicated. Expect only the Samsung
+by-id path, `/dev/disk/by-partlabel/disk-primary-{ESP,luks}` (labels this script creates),
+`/dev/mapper/cryptroot`, and `/dev/null`. Anything resolving to the Crucial means stop.
+
+Then the real run:
+
+```sh
+sudo nix --extra-experimental-features 'nix-command flakes' run github:nix-community/disko/ff8702b4de27f72b4c78573dfb89ec74e36abdf1 -- --mode destroy,format,mount --flake .#desktop
 ```
 
 `--mode destroy,format,mount` is the current spelling (the old `--mode disko` is
-deprecated). Disko has a built-in destroy safety check; there is a flag to skip it —
-**do not pass it.**
+deprecated). Disko prompts for confirmation and lists the disks it will wipe; there is a
+`--yes-wipe-all-disks` flag that skips the dialogue. **Do not pass it.**
 
 It will prompt for the LUKS passphrase interactively. Nothing secret is written to the repo
 or the store.
@@ -230,8 +279,12 @@ mount | grep /mnt     # expect /mnt, /mnt/home, /mnt/nix, /mnt/boot
 ### 5. Install
 
 ```sh
-sudo nixos-install --flake .#desktop
+sudo NIX_CONFIG="experimental-features = nix-command flakes" nixos-install --flake .#desktop
 ```
+
+The `NIX_CONFIG` prefix is required. The ISO's nix has flakes disabled, and `nixos-install`
+invokes nix internally where `--extra-experimental-features` on the outer command does not
+reach.
 
 It prompts for a **root** password at the end — set one; it is the recovery path.
 `carlos` already has `initialPassword = "changeme"` from the config.
@@ -255,8 +308,8 @@ deliberately no GRUB and no os-prober, and the Windows ESP is never mounted.
 - [ ] Clone the repo to its permanent home and rebuild **from the installed system** — this
       is the actual done-criterion, not the install:
 
-      git clone -b nixos https://github.com/cadomani/.dotfiles.git ~/dev/dotfiles
-      sudo nixos-rebuild switch --flake ~/dev/dotfiles#desktop
+      git clone -b nixos https://github.com/cadomani/.dotfiles.git ~/.dotfiles
+      sudo nixos-rebuild switch --flake ~/.dotfiles#desktop
 
 - [ ] To *push* from the desktop, give it an outbound GitHub credential — either restore the
       backed-up Arch key to `~/.ssh/id_ed25519` (`chmod 600`) and switch the remote to SSH,
