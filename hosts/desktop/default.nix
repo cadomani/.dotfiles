@@ -3,7 +3,7 @@
 # Stage 0 only: enough to boot, unlock, get a TTY, reach the network, and rebuild itself.
 # No GUI, no NVIDIA, no home-manager. Those are stages 2, 3 and 1 respectively -- each one
 # introduces exactly one new thing that can break.
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   # ------------------------------------------------------------------ boot
   boot.loader.systemd-boot.enable = true;
@@ -123,6 +123,21 @@
     dates = "weekly";
     options = "--delete-older-than 30d";
   };
+
+  # ------------------------------------------------------------------ nixpkgs
+  # Unfree packages are allowed one at a time, by name, rather than with a blanket
+  # `allowUnfree = true`. Every unfree package then stays a visible decision in this list
+  # instead of a category that silently opened. In particular the NVIDIA driver will not
+  # evaluate until it is named here, which keeps stage 2 an explicit step rather than
+  # something that quietly became possible the day claude-code was added.
+  #
+  # This governs home-manager too: `useGlobalPkgs` means it evaluates against this same
+  # nixpkgs, so a package declared in home/carlos.nix answers to this predicate.
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "claude-code"
+    ];
 
   # ------------------------------------------------------------------ packages
   # Deliberately two. Stage 0 needs exactly enough to rebuild itself and to repair a broken
