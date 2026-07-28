@@ -130,6 +130,13 @@
   environment.systemPackages = with pkgs; [
     git # `nixos-rebuild --flake .` cannot read a flake in a git repo without it
     vim # edit a config that will not evaluate, before an editor has been configured
+
+    # Terminfo for Ghostty, the terminal this machine is driven from over SSH. Ghostty sets
+    # TERM=xterm-ghostty, and a host with no matching terminfo entry has no description of
+    # the terminal's capabilities, so zsh's line editor miscomputes cursor movement and
+    # echoes characters twice. This is the terminfo output alone, not the terminal, and
+    # installing it on remote hosts is what the nixpkgs ghostty package itself recommends.
+    ghostty.terminfo
   ];
 
   # ------------------------------------------------------------------ home-manager
