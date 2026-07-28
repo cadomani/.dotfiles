@@ -50,6 +50,22 @@
   # starship.toml, and there is nothing yet worth putting in one.
   programs.starship.enable = true;
 
+  # Claude Code, run on this machine rather than driving it from the MacBook, so that it
+  # reads the repository and the system it configures directly instead of reasoning about
+  # them through a remote shell.
+  #
+  # The package is unfree, so this evaluates only because the host names it in
+  # `nixpkgs.config.allowUnfreePredicate`. A nix-darwin host importing this file would need
+  # its own allowance. That is host policy, and deliberately does not live here.
+  programs.claude-code = {
+    enable = true;
+
+    # Written to ~/.claude/CLAUDE.md, so it applies to every project on this machine.
+    # Repository-specific instructions live in each repository's own CLAUDE.md, which takes
+    # precedence where the two disagree.
+    context = ./claude/global.md;
+  };
+
   programs.git = {
     enable = true;
 
